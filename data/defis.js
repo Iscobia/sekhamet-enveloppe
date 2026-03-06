@@ -1,5 +1,9 @@
 // data/defis.js
 
+// Compat provisoire : le code existant attend DefisEnvol
+window.DefisEnvol = window.DefisEnvol || window.DefisEnveloppe;
+
+
 const DefisEnveloppe = [
   {
     jour: 1,
