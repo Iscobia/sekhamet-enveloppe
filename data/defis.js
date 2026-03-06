@@ -1,5 +1,7 @@
 // data/defis.js
 
+// Compat : certains morceaux attendent encore DefisEnvol
+window.DefisEnvol = window.DefisEnvol || window.DEFIS || DefisEnveloppe;
 
 const window.DEFIS = [
   {
@@ -256,7 +258,7 @@ function initializeApp() {
   loadProgression();
 }
 
-window.DEFIS = DefisEnveloppe;
+window.DEFIS = DefisEnveloppe; // ou Origine/Emergence selon l’app
 
 // pour EVOLUTION :
 

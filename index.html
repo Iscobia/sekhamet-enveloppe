@@ -14,7 +14,7 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="core/style.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="theme.css">
     
     <title>Enveloppe - Défi Quotidien</title>
 
@@ -74,11 +74,12 @@
       }, 5000);
     </script>
 
-    <!---- Script pour les notifications paramétrées dans core/notifications.js ---->
-    <script src="core/notifications.js" defer></script>
-    
+
     <!---- Script de configuration (PWA child)  et core/app.js une fois que OneSignal est chargé ---->
     <script src="config.js"></script>
+    <script src="data/defis.js"></script>
+    <!---- Script pour les notifications paramétrées dans core/notifications.js ---->
+    <script src="core/notifications.js" defer></script>
     <script src="core/app.js" defer></script>
 </head>
     
@@ -214,9 +215,7 @@
             </section>
         </footer>
     </div>
-    
-    <!-- Scripts JavaScript -->
-    <script src="data/defis.js"></script>
+
     
     <!-- Service Worker Registration -->
     <script>
