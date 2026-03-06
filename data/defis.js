@@ -1,9 +1,6 @@
 // data/defis.js
 
-// Compat : certains morceaux attendent encore DefisEnvol
-window.DefisEnvol = window.DefisEnvol || window.DEFIS || DefisEnveloppe;
-
-const window.DEFIS = [
+const DefisEnveloppe = [
   {
     jour: 1,
     titre: "Ancrage olfactif",
@@ -223,25 +220,27 @@ const window.DEFIS = [
   }
 ];
 
+
+
 // Fonction utilitaire pour obtenir le défi d'un jour
 function getDefiByDay(jourNumero) {
-  return DefisEnvol.find(defi => defi.jour === jourNumero) || DefisEnvol[0];
+  return window.DEFIS.find(defi => defi.jour === jourNumero) || window.DEFIS[0];
 }
 
 // Sauvegarde la progression dans le localStorage
 function saveProgression() {
-  localStorage.setItem('defis_envol', JSON.stringify(DefisEnvol));
+  localStorage.setItem('defis_progression', JSON.stringify(window.DEFIS));
 }
 
 // Charge la progression depuis le localStorage
 function loadProgression() {
-  const sauvegarde = localStorage.getItem('defis_envol');
+  const sauvegarde = localStorage.getItem('defis_progression');
   if (sauvegarde) {
     const defisSauves = JSON.parse(sauvegarde);
     defisSauves.forEach((defiSauve, index) => {
-      if (DefisEnvol[index]) {
-        DefisEnvol[index].termine = defiSauve.termine;
-        DefisEnvol[index].dateValidation = defiSauve.dateValidation;
+      if (window.DEFIS[index]) {
+        window.DEFIS[index].termine = defiSauve.termine;
+        window.DEFIS[index].dateValidation = defiSauve.dateValidation;
       }
     });
   }
