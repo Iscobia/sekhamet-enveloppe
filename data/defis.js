@@ -1,10 +1,7 @@
 // data/defis.js
 
-// Compat provisoire : le code existant attend DefisEnvol
-window.DefisEnvol = window.DefisEnvol || window.DefisEnveloppe;
 
-
-const DefisEnveloppe = [
+const window.DEFIS = [
   {
     jour: 1,
     titre: "Ancrage olfactif",
@@ -258,3 +255,16 @@ function initializeApp() {
   }
   loadProgression();
 }
+
+window.DEFIS = DefisEnveloppe;
+
+// pour EVOLUTION :
+
+window.DEFIS_BY_APP = {
+  origine: DefisOrigine,
+  enveloppe: DefisEnveloppe,
+  emergence: DefisEmergence
+};
+
+// quand l'utilisateur choisira un défi, il faudra faire :
+// window.DEFIS = window.DEFIS_BY_APP[APP_ID];
