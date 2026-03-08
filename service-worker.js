@@ -12,7 +12,7 @@ try {
 }
 */
 
-const CACHE_NAME = 'enveloppe-cache-v3';
+const CACHE_NAME = 'enveloppe-cache-v1.0.0';
 const urlsToCache = [
   '/sekhamet-enveloppe/',
   '/sekhamet-enveloppe/index.html',
