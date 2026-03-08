@@ -1,13 +1,35 @@
 // envol-notifications.js - Version corrigée pour OneSignal
-console.log('🔔 [Envol-Notifications] Chargement du module...');
+console.log('🔔 [Notifications] Chargement du module...');
 
 // Préférence utilisateur (ON/OFF) pour les rappels (indépendant de la permission navigateur)
-const ENVOL_NOTIF_PREF_KEY = 'envol_notifications_enabled';
-const ENABLE_ONESIGNAL = false; // passe à true quand backend prêt
+const APP = window.APP_CONFIG || {};
+const APP_ID = APP.ID || 'app';
+const APP_NAME = APP.NAME || 'APP';
+const STORAGE_PREFIX = APP.STORAGE_PREFIX || `${APP_ID}_`;
+const APP_ICON_192 = APP.ICON_192 || './core/assets/icons/default-192.png';
+const APP_ICON_512 = APP.ICON_512 || APP_ICON_192;
+
+const NOTIF_PREF_KEY = `${STORAGE_PREFIX}notifications_enabled`;
+const ENABLE_ONESIGNAL = window.ENABLE_ONESIGNAL === true;
+
+function notifLsGet(key, fallback = null) {
+  const value = localStorage.getItem(`${STORAGE_PREFIX}${key}`);
+  return value !== null ? value : fallback;
+}
+
+function notifLsSet(key, value) {
+  localStorage.setItem(`${STORAGE_PREFIX}${key}`, value);
+}
+
+function isProgressPaused() {
+  return notifLsGet('progress_paused', 'false') === 'true';
+}
+
+
 
 // Attendre que le DOM soit chargé
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🔔 [Envol-Notifications] DOM chargé, initialisation...');
+  console.log('🔔 [Notifications] DOM chargé, initialisation...');
 
    
   // ✅ Mettre à jour le toggle tout de suite (sans attendre OneSignal)
@@ -79,29 +101,33 @@ console.log('🔍 Boutons trouvés:', {
 
 
     async function initEnvolNotifications() {
-      console.log('🔔 [Envol-Notifications] Début initialisation...');
-      
+      console.log('🔔 [Notifications] Début initialisation...');
+
       try {
-        // VÉRIFICATION 1: OneSignal est-il disponible ?
+        if (!ENABLE_ONESIGNAL) {
+          console.log('🛑 [Notifications] OneSignal désactivé, notifications natives uniquement');
+          setupFallbackNotifications();
+          return;
+        }
+
         if (typeof OneSignal === 'undefined') {
-          console.warn('⚠️ [Envol-Notifications] OneSignal non disponible');
-          
-          // Fallback: utiliser la variable globale si définie
-          if (typeof window.OneSignalGlobal !== 'undefined') {
-            console.log('🔔 [Envol-Notifications] Utilisation OneSignalGlobal');
-            setupOneSignal(window.OneSignalGlobal);
+          console.warn('⚠️ [Notifications] OneSignal non disponible');
+
+          if (window.OneSignalGlobal) {
+            console.log('🔔 [Notifications] Utilisation OneSignalGlobal');
+            await setupOneSignal(window.OneSignalGlobal);
           } else {
-            console.error('❌ [Envol-Notifications] OneSignal complètement absent');
+            console.warn('⚠️ [Notifications] OneSignal absent, fallback natif');
             setupFallbackNotifications();
           }
           return;
         }
         
-        console.log('✅ [Envol-Notifications] OneSignal disponible');
+        console.log('✅ [Notifications] OneSignal disponible');
         setupOneSignal(OneSignal);
         
       } catch (error) {
-        console.error('❌ [Envol-Notifications] Erreur initialisation:', error);
+        console.error('❌ [Notifications] Erreur initialisation:', error);
         setupFallbackNotifications();
       }
     }
@@ -113,14 +139,14 @@ console.log('🔍 Boutons trouvés:', {
 // 2. Configuration OneSignal
 
       async function setupOneSignal(oneSignal) {
-        console.log('🔔 [Envol-Notifications] Configuration OneSignal...');
+        console.log('🔔 [Notifications] Configuration OneSignal...');
         
         try {
           // Vérifier si OneSignal est déjà initialisé (optionnel)
           if (oneSignal.config && oneSignal.config.appId) {
-            console.log('✅ [Envol-Notifications] OneSignal déjà initialisé avec App ID:', oneSignal.config.appId);
+            console.log('✅ [Notifications] OneSignal déjà initialisé avec App ID:', oneSignal.config.appId);
           } else {
-            console.warn('⚠️ [Envol-Notifications] OneSignal pas encore initialisé');
+            console.warn('⚠️ [Notifications] OneSignal pas encore initialisé');
             // Ne pas réinitialiser! Attendre
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
@@ -142,7 +168,7 @@ console.log('🔍 Boutons trouvés:', {
 
          // 2B. Notifications natives (respecter le toggle ON/OFF)
           try {
-            const pref = localStorage.getItem(ENVOL_NOTIF_PREF_KEY);
+            const pref = localStorage.getItem(NOTIF_PREF_KEY);
             if (pref !== 'false') {
               await programmerNotificationQuotidienne();
               console.log('✅ Notifications natives prêtes');
@@ -155,7 +181,7 @@ console.log('🔍 Boutons trouvés:', {
 
           
         } catch (error) {
-          console.error('❌ [Envol-Notifications] Erreur configuration:', error);
+          console.error('❌ [Notifications] Erreur configuration:', error);
               // ESSAYER QUAND MÊME l'interface minimaliste
           try {
             if (typeof setupNotificationUI === 'function') {
@@ -173,13 +199,13 @@ console.log('🔍 Boutons trouvés:', {
   // 3. Configuration notifications quotidiennes
 
       async function setupDailyNotifications(oneSignal) {
-        console.log('🔔 [Envol-Notifications] Configuration notifications quotidiennes...');
+        console.log('🔔 [Notifications] Configuration notifications quotidiennes...');
         
         // Récupérer l'heure configurée
         const heureNotification = localStorage.getItem('heure_notification') || '09:00';
         const [heures, minutes] = heureNotification.split(':').map(Number);
         
-        console.log(`🔔 [Envol-Notifications] Heure configurée: ${heures}h${minutes}`);
+        console.log(`🔔 [Notifications] Heure configurée: ${heures}h${minutes}`);
         
         // Pour OneSignal, on doit créer des tags/custom data
         // Les vraies notifications programmées nécessitent le dashboard OneSignal
@@ -188,7 +214,7 @@ console.log('🔍 Boutons trouvés:', {
         await oneSignal.User.addTag('notification_time', heureNotification);
         await oneSignal.User.addTag('app_name', 'ENVOL');
         
-        console.log('✅ [Envol-Notifications] Tags configurés');
+        console.log('✅ [Notifications] Tags configurés');
       }
 
 
@@ -212,7 +238,7 @@ console.log('🔍 Boutons trouvés:', {
       const hasPermission = (permission === "granted");
     
       // Préférence utilisateur (ON/OFF) pour ENVOL (indépendant de la permission navigateur)
-      const pref = localStorage.getItem(ENVOL_NOTIF_PREF_KEY);
+      const pref = localStorage.getItem(NOTIF_PREF_KEY);
       const enabledByUser = (pref !== "false"); // par défaut: true si jamais rien n'est stocké
     
       // Si pas de permission, on ne peut pas considérer "actif", même si l'utilisateur veut ON
@@ -255,7 +281,7 @@ console.log('🔍 Boutons trouvés:', {
 
   
   async function setupNotificationUI(oneSignal) {
-    console.log('🔔 [Envol-Notifications] Configuration UI...');
+    console.log('🔔 [Notifications] Configuration UI...');
   
     // ========== MISE À JOUR INITIALE DU BOUTON ==========
      await updateToggleButton();
@@ -265,15 +291,15 @@ console.log('🔍 Boutons trouvés:', {
     const userAgent = navigator.userAgent;
     const platform = navigator.platform;
     
-    console.log('🔔 [Envol-Notifications] User Agent:', userAgent.substring(0, 80) + '...');
-    console.log('🔔 [Envol-Notifications] Platform:', platform);
+    console.log('🔔 [Notifications] User Agent:', userAgent.substring(0, 80) + '...');
+    console.log('🔔 [Notifications] Platform:', platform);
     
     const isIOS = /iPhone|iPad|iPod/i.test(platform) || 
                   /iPhone|iPad|iPod/i.test(userAgent);
     const isFirefox = /Firefox/i.test(userAgent);
     const isChrome = /Chrome/i.test(userAgent) && !/Edge|Edg/i.test(userAgent);
     
-    console.log('🔔 [Envol-Notifications] Détection:', { isIOS, isFirefox, isChrome });
+    console.log('🔔 [Notifications] Détection:', { isIOS, isFirefox, isChrome });
   
   
     
@@ -327,7 +353,7 @@ console.log('🔍 Boutons trouvés:', {
   
     
     if (toggleBtn) {
-      console.log('✅ [Envol-Notifications] Bouton toggle trouvé');  
+      console.log('✅ [Notifications] Bouton toggle trouvé');  
   
       
       updateToggleButton();
@@ -337,7 +363,7 @@ console.log('🔍 Boutons trouvés:', {
     //======= ÉCOUTE D'UNE INTERACTION AVEC LE BOUTON TOGGLE =========
     
       toggleBtn.addEventListener('click', async function() {
-        console.log('🔔 [Envol-Notifications] Clic toggle');
+        console.log('🔔 [Notifications] Clic toggle');
       
         const status = await getNotificationStatus(); 
         // status.finalStatus = ON réel (permission + pref)
@@ -349,7 +375,7 @@ console.log('🔍 Boutons trouvés:', {
           if (confirm('Voudrais-tu désactiver tes notifications quotidiennes ?\n\nTu pourras les réactiver à tout moment si tu changes d\'avis 😊')) {
             try {
               // 1) Préférence OFF (c'est CE qui pilote le bouton)
-              localStorage.setItem(ENVOL_NOTIF_PREF_KEY, 'false');
+              localStorage.setItem(NOTIF_PREF_KEY, 'false');
       
               // 2) Stopper les notifications locales programmées (si l'app est ouverte)
               if (typeof window.stopNotificationsQuotidiennes === 'function') {
@@ -373,7 +399,7 @@ console.log('🔍 Boutons trouvés:', {
           // =========================
       
           // On enregistre l'intention ON tout de suite (le bouton passera ON)
-          localStorage.setItem(ENVOL_NOTIF_PREF_KEY, 'true');
+          localStorage.setItem(NOTIF_PREF_KEY, 'true');
       
           if (isIOS) {
             alert('📱 Sur iOS, selon la configuration, les notifications peuvent être limitées quand l\'app est fermée.\n\nMais tu peux recevoir des rappels quand ENVOL est ouverte.\n\nGarde un onglet ouvert pour tes rappels quotidiens 😊');
@@ -401,7 +427,7 @@ console.log('🔍 Boutons trouvés:', {
       
               } else {
                 // Permission refusée -> on remet OFF pour ne pas être incohérent
-                localStorage.setItem(ENVOL_NOTIF_PREF_KEY, 'false');
+                localStorage.setItem(NOTIF_PREF_KEY, 'false');
       
                 if (Notification.permission === "denied") {
                   alert('Je comprends ! Tu as choisi de ne pas recevoir de notifications.\n\nSi tu changes d\'avis, tu peux les autoriser dans les paramètres de ton navigateur.\n\nTon parcours continue quand même ! 🌈');
@@ -417,7 +443,7 @@ console.log('🔍 Boutons trouvés:', {
             console.error('Erreur activation:', error);
       
             // échec -> remettre OFF sinon bouton incohérent
-            localStorage.setItem(ENVOL_NOTIF_PREF_KEY, 'false');
+            localStorage.setItem(NOTIF_PREF_KEY, 'false');
       
             alert('Oups ! Je n\'ai pas réussi à afficher la demande de permission...\n\nPeut-être qu\'un bloqueur ou une protection de navigateur empêche ça.\n\nEssaie avec Chrome ou désactive temporairement les protections 💡');
           }
@@ -440,10 +466,10 @@ console.log('🔍 Boutons trouvés:', {
   
     const allowBtn = document.getElementById('allow-notifications-btn');
     if (allowBtn) {
-      console.log('✅ [Envol-Notifications] Bouton allow trouvé');
+      console.log('✅ [Notifications] Bouton allow trouvé');
       
       allowBtn.addEventListener('click', async function() {
-        console.log('🔔 [Envol-Notifications] Clic sur autoriser notifications');
+        console.log('🔔 [Notifications] Clic sur autoriser notifications');
         
     if (isIOS) {
       alert('📱 Sur iOS, les notifications push ne fonctionnent pas quand l\'app est fermée (limitation Apple).\n\nMais tu peux recevoir des notifications quand ENVOL est ouverte !\n\nGarde un onglet ouvert pour tes rappels quotidiens 😊');
@@ -487,7 +513,7 @@ console.log('🔍 Boutons trouvés:', {
   // ========== BOUTON "TEST NOTIFICATION" ==========
   const testBtn = document.getElementById('test-notification-android-btn');
     if (testBtn) {
-      console.log('✅ [Envol-Notifications] Bouton test trouvé');
+      console.log('✅ [Notifications] Bouton test trouvé');
       
       // MARQUER le bouton comme ayant déjà un gestionnaire
       testBtn.setAttribute('data-has-handler', 'true');
@@ -541,10 +567,10 @@ console.log('🔍 Boutons trouvés:', {
             if (canSend) {
               // Envoyer une notification via l'API moderne
               await OneSignal.Notifications.sendNotification({
-                title: '🎯 ENVOL - Test OneSignal',
+                title: `🎯 ${APP_NAME} - Test OneSignal`,
                 message: 'Ceci est un test de notification push',
                 url: window.location.href,
-                icon: '/sekhamet-envol/assets/icons/ENVOL-192_sansMarges.png'
+                icon: APP_ICON_192
               });
               resultats.push('✅ ONESIGNAL: Test envoyé (v16)');
             } else {
@@ -620,7 +646,7 @@ console.log('🔍 Boutons trouvés:', {
   // 5. Fallback (plan B) - FONCTION SÉPARÉE !
     
     function setupFallbackNotifications() {
-    console.log('🔔 [Envol-Notifications] Utilisation fallback (notifications natives)');
+    console.log('🔔 [Notifications] Utilisation fallback (notifications natives)');
   
       // Détecter Firefox
     if (/Firefox/i.test(navigator.userAgent)) {
@@ -633,7 +659,7 @@ console.log('🔍 Boutons trouvés:', {
       testBtn.addEventListener('click', function() {
         if ('Notification' in window && Notification.permission === 'granted') {
           const jourActuel = localStorage.getItem('jour_actuel') || 1;
-          const notif = new Notification(`🎯 ENVOL - Jour ${jourActuel}`, {
+          const notif = new Notification(`🎯 ${APP_NAME} - Jour ${jourActuel}`, {
             body: 'Notification de test',
             icon: '/sekhamet-envol/assets/icons/ENVOL-192_sansMarges.png'
           });
@@ -673,12 +699,16 @@ console.log('🔍 Boutons trouvés:', {
 
   
 async function programmerNotificationQuotidienne() {
-  console.log('🔔 [Programmation] Début...');
+  console.log(`🔔 [Programmation ${APP_NAME}] Début...`);
 
-  // Respecter le choix utilisateur (toggle OFF)
-  const pref = localStorage.getItem(ENVOL_NOTIF_PREF_KEY);
+  if (isProgressPaused()) {
+    console.log(`⏸️ [Programmation ${APP_NAME}] Progression en pause`);
+    return;
+  }
+
+  const pref = localStorage.getItem(NOTIF_PREF_KEY);
   if (pref === 'false') {
-    console.log('⏸️ [Programmation] Désactivée par l’utilisateur (toggle OFF)');
+    console.log(`⏸️ [Programmation ${APP_NAME}] Désactivée par l’utilisateur (toggle OFF)`);
     return;
   }
 
@@ -726,11 +756,15 @@ async function programmerNotificationQuotidienne() {
 } // Fin de async function programmerNotificationQuotidienne()
 
   
-  async function envoyerNotificationDuJour() {
-    try {
-      // 1. Récupérer le jour actuel
-      const jourActuel = parseInt(localStorage.getItem('jour_actuel')) || 1;
-      
+async function envoyerNotificationDuJour(isTest = false) {
+  try {
+    if (!isTest && isProgressPaused()) {
+      console.log(`⏸️ [Notification ${APP_NAME}] Ignorée : progression en pause`);
+      return;
+    }
+
+    const jourActuel = parseInt(notifLsGet('jour_actuel', '1'), 10) || 1;
+
       // 2. Récupérer le défi du jour
       const defi = getDefiByDay(jourActuel);
       
@@ -740,17 +774,22 @@ async function programmerNotificationQuotidienne() {
       }
       
       // NOTIFICATION DE TEST vs QUOTIDIENNE
-    const isTest = window.isTestNotification === true;
+    const isTestMode = isTest === true;
     
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       // Notification quotidienne via Service Worker
       navigator.serviceWorker.controller.postMessage({
           action: 'SEND_NOTIFICATION',
+          appId: APP_ID,
+          appName: APP_NAME,
           jour: jourActuel,
           titre: defi.titre,
           description: defi.description,
-          isTest: isTest,
-          tag: `envol-jour-${jourActuel}`
+          isTest: isTestMode,
+          icon: APP_ICON_192,
+          badge: APP_ICON_192,
+          url: window.location.href,
+          tag: `${APP_ID}-jour-${jourActuel}`
         });
 
       
@@ -760,19 +799,9 @@ async function programmerNotificationQuotidienne() {
       // NOTIFICATION DE TEST avec plus d'options
       const options = {
         body: `Jour ${jourActuel}: ${defi.titre}\n\n${defi.description.substring(0, 100)}...`,
-        icon: '/sekhamet-envol/assets/icons/ENVOL-192_sansMarges.png',
+        icon: APP_ICON_192,
         tag: `test-${Date.now()}`,
-        requireInteraction: true, // Reste visible
-        actions: [
-          {
-            action: 'voir',
-            title: '👀 Voir le défi'
-          },
-          {
-            action: 'marquer',
-            title: '✅ Marquer comme fait'
-          }
-        ],
+        requireInteraction: true,
         data: {
           jour: jourActuel,
           url: window.location.href,
@@ -780,7 +809,10 @@ async function programmerNotificationQuotidienne() {
         }
       };
       
-      const notification = new Notification(`🎯 ENVOL - Test Notification`, options);
+      const notification = new Notification(
+        isTestMode ? `🎯 ${APP_NAME} - Test Notification` : `🔔 ${APP_NAME} - Jour ${jourActuel}`,
+        options
+      );
       
       // Gestion des clics sur la notification
       notification.onclick = function(event) {
@@ -842,7 +874,6 @@ window.setupNotificationUI = setupNotificationUI; // Pour debug
 window.debugOneSignalState = debugOneSignalState;
 window.getNotificationStatus = getNotificationStatus;
 window.updateToggleButton = updateToggleButton;
-window.showDailyWakeNotificationIfNeeded?.();
 
 console.log('🔧 Fonctions debug disponibles:');
 console.log('- debugOneSignalState()');
