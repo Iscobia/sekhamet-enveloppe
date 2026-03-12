@@ -14,15 +14,15 @@ try {
 
 const CACHE_NAME = 'enveloppe-cache-v1.0.0';
 const urlsToCache = [
-  '/sekhamet-enveloppe/',
-  '/sekhamet-enveloppe/index.html',
-  '/sekhamet-enveloppe/config.js',
-  '/sekhamet-enveloppe/manifest.json',
-  '/sekhamet-enveloppe/theme.css',
-  '/sekhamet-enveloppe/data/defis.js',
-  '/sekhamet-enveloppe/core/style.css',
-  '/sekhamet-enveloppe/core/app.js',
-  '/sekhamet-enveloppe/core/notifications.js'
+  '/',
+  '/index.html',
+  '/config.js',
+  '/manifest.json',
+  '/theme.css',
+  '/data/defis.js',
+  '/core/style.css',
+  '/core/app.js',
+  '/core/notifications.js'
 ];
 
 

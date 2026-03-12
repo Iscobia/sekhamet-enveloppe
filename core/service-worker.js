@@ -14,10 +14,10 @@ try {
 
 const CACHE_NAME = 'envol-cache-v1';
 const urlsToCache = [
-  '/sekhamet-envol/',
-  '/sekhamet-envol/index.html',
-  '/sekhamet-envol/style.css',
-  '/sekhamet-envol/data/defis.js',
+  '/',
+  '/index.html',
+  '/style.css',
+  '/data/defis.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -53,11 +53,11 @@ self.addEventListener('message', (event) => {
 
     self.registration.showNotification(notifTitle, {
       body: (description || '').substring(0, 240),
-      icon: '/sekhamet-envol/assets/icons/ENVOL-192_sansMarges.png',
-      badge: '/sekhamet-envol/assets/icons/ENVOL-192.png',
+      icon: '/assets/icons/ENVOL-192_sansMarges.png',
+      badge: '/assets/icons/ENVOL-192.png',
       tag: `envol-jour-${jour}`,
       requireInteraction: true,
-      data: { jour: String(jour), url: '/sekhamet-envol/#notifications' },
+      data: { jour: String(jour), url: '/#notifications' },
       actions: [
         { action: 'view', title: '👁️ Voir' },
         { action: 'mark-done', title: '✅ Marquer' },
@@ -78,7 +78,7 @@ self.addEventListener('notificationclick', (event) => {
     const data = event.notification.data || {};
     event.notification.close();
 
-    const appUrl = new URL('/sekhamet-envol/', self.location.origin).href;
+    const appUrl = new URL('/', self.location.origin).href;
 
     if (action === 'mark-done') {
       event.waitUntil(
