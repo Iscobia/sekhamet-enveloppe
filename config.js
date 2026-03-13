@@ -19,7 +19,7 @@ window.ALLOWED_APP_IDS = ["enveloppe"];
 window.NOTIFICATION_APP_IDS = window.ALLOWED_APP_IDS;
 
 // CHANGER CETTE VARIABLE pour choisir la PAGE PAR DÉFAUT vers laquelle on est redirigé en cas de soucis :
-window.DEFAULT_APP_ID = "enveloppe";
+window.DEFAULT_APP_ID = "fondation","enveloppe";
 window.TECH_SUPPORT_EMAIL = "contact@sekhamet.com";
 
 
@@ -83,7 +83,22 @@ window.APP_CONFIGS = {
     BROWSER_TITLE: "EMERGENCE - Défi Quotidien",
     TOTAL_DAYS: 62,
     SUPPORT_URL: "https://coaching.sekhamet.com/school/course/emergence/"
-  }
+  },
+  fondation: {
+    ID: "fondation",
+    NAME: "FONDATION",
+    STORAGE_PREFIX: "fondation_",
+    CACHE_NAME: "fondation-pwa-v1",
+    ICON_192: "./core/assets/icons/FONDATION-192.png",
+    ICON_512: "./core/assets/icons/FONDATION-512.png",
+    NOTIF_TITLE: "FONDATION — Défi du jour",
+    INSTALL_TITLE: "Installer FONDATION ?",
+    INSTALL_LABEL: "📱 Installer FONDATION sur l'écran d'accueil",
+    MAIN_TITLE: "Prépare ton terrain",
+    BROWSER_TITLE: "FONDATION - Défi Quotidien",
+    TOTAL_DAYS: 7,
+    SUPPORT_URL: "https://github.com/Iscobia/base-pwa-coaching/blob/main/data/FONDATION_Support.pdf"
+  },
 };
 
 
