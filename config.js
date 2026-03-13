@@ -14,12 +14,12 @@ const appFromUrl = urlParams.get("app");
 // CHANGER CETTE VARIABLE pour choisir les pages gérées par l'app :
 // variables possibles : ["origine", "enveloppe", "emergence"]
 // puis quand les paramètres seront entrés "fondement" (pour la mini-app bonus sur la préparation de notre environnement pour bien vivre le programme principal) et éventuellement "envol"
-window.ALLOWED_APP_IDS = ["enveloppe"];
+window.ALLOWED_APP_IDS = ["fondation","enveloppe"];
 // Les notifications suivent exactement les mêmes pages
 window.NOTIFICATION_APP_IDS = window.ALLOWED_APP_IDS;
 
 // CHANGER CETTE VARIABLE pour choisir la PAGE PAR DÉFAUT vers laquelle on est redirigé en cas de soucis :
-window.DEFAULT_APP_ID = "fondation","enveloppe";
+window.DEFAULT_APP_ID = "enveloppe";
 window.TECH_SUPPORT_EMAIL = "contact@sekhamet.com";
 
 
